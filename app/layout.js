@@ -3,6 +3,8 @@ import "./globals.css";
 import { ThemeProvider } from "../components/ui/theme-provider";
 import Header from "@/components/ui/header";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Toaster } from "sonner";
+
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,6 +28,7 @@ export default function RootLayout({ children }) {
             <main className="flex-1">
               {children}
             </main>
+            <Toaster richColors/>
             <footer className="footer bg-gray-800 text-white p-4 text-center">
               <div className="container mx-auto">
                 <p>Made with love by Sanskriti</p>
