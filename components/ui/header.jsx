@@ -20,11 +20,11 @@ const Header = async() => {
         {/* Logo Section - Only wraps the image */}
         <Link href='/'>
           <Image 
-            src="/logo.jpg" 
+            src="/LOGO.jpg" 
             alt="Skillective Logo" 
-            width={200} 
-            height={60} 
-            className="h-12 py-1 w-auto object-contain" 
+            width={1000} 
+            height={100} 
+            className="h-18 py-1 w-auto object-contain" 
           />
         </Link>
 
