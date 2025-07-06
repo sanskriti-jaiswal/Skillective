@@ -1,8 +1,6 @@
 "use client";
 
 import { generateQuiz } from "@/actions/interview";
-// Add this import - you need to create this action or import it if it exists
-// import { saveQuizResult } from "@/actions/interview";
 import useFetch from "@/hooks/use-fetch";
 import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
