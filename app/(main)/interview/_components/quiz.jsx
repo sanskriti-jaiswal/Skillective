@@ -1,6 +1,6 @@
 "use client";
 
-import { generateQuiz } from "@/actions/interview";
+import { generateQuiz, saveQuizResult } from "@/actions/interview";
 import useFetch from "@/hooks/use-fetch";
 import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
@@ -92,18 +92,15 @@ const Quiz = () => {
     const score = calculateScore();
     setFinalScore(score);
     setSavingResult(true);
-    
+
     try {
-      // Replace this with actual saveQuizResultFn when you create the action
-      // await saveQuizResultFn(quizData, answers, score);
-      
-      // Temporary simulation of saving
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      // Actually save the quiz result to the database
+      await saveQuizResult(quizData, answers, score);
+
       // Format the result for QuizResult component
       const formattedResult = formatQuizResult(score);
       setQuizResult(formattedResult);
-      
+
       setQuizCompleted(true);
       toast.success(`Quiz completed! Your score: ${score.toFixed(1)}%`);
     } catch (error) {
