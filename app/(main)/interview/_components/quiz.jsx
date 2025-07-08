@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useEffect } from "react";
 import { toast } from "sonner";
+import QuizResult from "./quiz-result"; // Import the QuizResult component
 
 const Quiz = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -17,6 +18,7 @@ const Quiz = () => {
   const [showExplanation, setShowExplanation] = useState(false);
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [finalScore, setFinalScore] = useState(0);
+  const [quizResult, setQuizResult] = useState(null); // Store the formatted result
 
   const {
     loading: generatingQuiz,
@@ -24,17 +26,7 @@ const Quiz = () => {
     data: quizData,
   } = useFetch(generateQuiz);
 
-  // Comment out or remove this until you create the saveQuizResult action
-  /*
-  const {
-    loading: savingResult,
-    fn: saveQuizResultFn,
-    data: resultData,
-    setData: setResultData,
-  } = useFetch(saveQuizResult);
-  */
-
-  // Temporary replacement for the above
+  // Temporary replacement for saveQuizResult
   const [savingResult, setSavingResult] = useState(false);
 
   useEffect(() => {
@@ -68,6 +60,34 @@ const Quiz = () => {
     return (correct / quizData.length) * 100;
   };
 
+  const formatQuizResult = (score) => {
+    const questions = quizData.map((question, index) => ({
+      question: question.question,
+      userAnswer: answers[index],
+      answer: question.correctAnswer,
+      isCorrect: answers[index] === question.correctAnswer,
+      explanation: question.explanation,
+    }));
+
+    // Generate improvement tip based on score
+    let improvementTip = "";
+    if (score < 50) {
+      improvementTip = "Consider reviewing the fundamentals and practicing more questions in this area.";
+    } else if (score < 70) {
+      improvementTip = "Good effort! Focus on understanding the concepts behind the questions you missed.";
+    } else if (score < 85) {
+      improvementTip = "Well done! Review the explanations for missed questions to reach mastery.";
+    } else {
+      improvementTip = "Excellent work! You have a strong grasp of the material.";
+    }
+
+    return {
+      quizScore: score,
+      questions: questions,
+      improvementTip: improvementTip,
+    };
+  };
+
   const finishQuiz = async () => {
     const score = calculateScore();
     setFinalScore(score);
@@ -80,6 +100,10 @@ const Quiz = () => {
       // Temporary simulation of saving
       await new Promise(resolve => setTimeout(resolve, 1000));
       
+      // Format the result for QuizResult component
+      const formattedResult = formatQuizResult(score);
+      setQuizResult(formattedResult);
+      
       setQuizCompleted(true);
       toast.success(`Quiz completed! Your score: ${score.toFixed(1)}%`);
     } catch (error) {
@@ -87,6 +111,15 @@ const Quiz = () => {
     } finally {
       setSavingResult(false);
     }
+  };
+
+  const handleStartNew = () => {
+    setQuizCompleted(false);
+    setCurrentQuestion(0);
+    setAnswers(new Array(quizData.length).fill(null));
+    setShowExplanation(false);
+    setQuizResult(null);
+    setFinalScore(0);
   };
 
   if (generatingQuiz) {
@@ -115,35 +148,13 @@ const Quiz = () => {
   }
 
   // Show results when quiz is completed
-  if (quizCompleted) {
+  if (quizCompleted && quizResult) {
     return (
       <Card className="mx-2">
-        <CardHeader>
-          <CardTitle>Quiz Completed!</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center space-y-4">
-            <div className="text-4xl font-bold text-primary">
-              {finalScore.toFixed(1)}%
-            </div>
-            <p className="text-muted-foreground">
-              You answered {Math.round((finalScore / 100) * quizData.length)} out of {quizData.length} questions correctly.
-            </p>
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button 
-            onClick={() => {
-              setQuizCompleted(false);
-              setCurrentQuestion(0);
-              setAnswers(new Array(quizData.length).fill(null));
-              setShowExplanation(false);
-            }}
-            className="w-full"
-          >
-            Retake Quiz
-          </Button>
-        </CardFooter>
+        <QuizResult 
+          result={quizResult} 
+          onStartNew={handleStartNew}
+        />
       </Card>
     );
   }
