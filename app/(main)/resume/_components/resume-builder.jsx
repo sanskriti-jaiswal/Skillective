@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
-// import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   AlertTriangle,
   Download,
@@ -12,16 +12,18 @@ import {
   Save,
 } from "lucide-react";
 import { toast } from "sonner";
-
+import MDEditor from "@uiw/react-md-editor";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { saveResume } from "@/actions/resume";
-
+import { EntryForm } from "./entry-form";
 import useFetch from "@/hooks/use-fetch";
 import { useUser } from "@clerk/nextjs";
-
+import { entriesToMarkdown } from "@/app/lib/helper";
+import { resumeSchema } from "@/app/lib/schema";
+import html2pdf from "html2pdf.js/dist/html2pdf.min.js";
 
 
 
@@ -38,7 +40,7 @@ export default function ResumeBuilder({ initialContent }) {
     watch,
     formState: { errors },
   } = useForm({
-    // resolver: zodResolver(resumeSchema),
+    resolver: zodResolver(resumeSchema),
     defaultValues: {
       contactInfo: {},
       summary: "",
@@ -98,16 +100,16 @@ export default function ResumeBuilder({ initialContent }) {
 
   const getCombinedContent = () => {
     const { summary, skills, experience, education, projects } = formValues;
-    // return [
-    //   getContactMarkdown(),
-    //   summary && `## Professional Summary\n\n${summary}`,
-    //   skills && `## Skills\n\n${skills}`,
-    //   entriesToMarkdown(experience, "Work Experience"),
-    //   entriesToMarkdown(education, "Education"),
-    //   entriesToMarkdown(projects, "Projects"),
-    // ]
-    //   .filter(Boolean)
-    //   .join("\n\n");
+    return [
+      getContactMarkdown(),
+      summary && `## Professional Summary\n\n${summary}`,
+      skills && `## Skills\n\n${skills}`,
+      entriesToMarkdown(experience, "Work Experience"),
+      entriesToMarkdown(education, "Education"),
+      entriesToMarkdown(projects, "Projects"),
+    ]
+      .filter(Boolean)
+      .join("\n\n");
   };
 
   const [isGenerating, setIsGenerating] = useState(false);
@@ -299,7 +301,7 @@ export default function ResumeBuilder({ initialContent }) {
             {/* Experience */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Work Experience</h3>
-              {/* <Controller
+              <Controller
                 name="experience"
                 control={control}
                 render={({ field }) => (
@@ -314,13 +316,13 @@ export default function ResumeBuilder({ initialContent }) {
                 <p className="text-sm text-red-500">
                   {errors.experience.message}
                 </p>
-              )} */}
+              )}
             </div>
 
             {/* Education */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Education</h3>
-              {/* <Controller
+              <Controller
                 name="education"
                 control={control}
                 render={({ field }) => (
@@ -335,13 +337,13 @@ export default function ResumeBuilder({ initialContent }) {
                 <p className="text-sm text-red-500">
                   {errors.education.message}
                 </p>
-              )} */}
+              )}
             </div>
 
             {/* Projects */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Projects</h3>
-              {/* <Controller
+              <Controller
                 name="projects"
                 control={control}
                 render={({ field }) => (
@@ -356,7 +358,7 @@ export default function ResumeBuilder({ initialContent }) {
                 <p className="text-sm text-red-500">
                   {errors.projects.message}
                 </p>
-              )} */}
+              )}
             </div>
           </form>
         </TabsContent>
@@ -393,7 +395,7 @@ export default function ResumeBuilder({ initialContent }) {
               </span>
             </div>
           )}
-          {/* <div className="border rounded-lg">
+          <div className="border rounded-lg">
             <MDEditor
               value={previewContent}
               onChange={setPreviewContent}
@@ -411,7 +413,8 @@ export default function ResumeBuilder({ initialContent }) {
                 }}
               />
             </div>
-          </div> */}
+          </div>
+
         </TabsContent>
       </Tabs>
     </div>
