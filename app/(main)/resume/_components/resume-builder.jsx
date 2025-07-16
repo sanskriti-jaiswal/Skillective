@@ -20,7 +20,6 @@ import { Input } from "@/components/ui/input";
 import { saveResume } from "@/actions/resume";
 import { EntryForm } from "./entry-form";
 import useFetch from "@/hooks/use-fetch";
-import { useUser } from "@clerk/nextjs";
 import { entriesToMarkdown } from "@/app/lib/helper";
 import { resumeSchema } from "@/app/lib/schema";
 import html2pdf from "html2pdf.js/dist/html2pdf.min.js";
@@ -28,7 +27,6 @@ import html2pdf from "html2pdf.js/dist/html2pdf.min.js";
 export default function ResumeBuilder({ initialContent }) {
   const [activeTab, setActiveTab] = useState("edit");
   const [previewContent, setPreviewContent] = useState(initialContent);
-  const { user } = useUser();
   const [resumeMode, setResumeMode] = useState("preview");
 
   const {
@@ -56,14 +54,12 @@ export default function ResumeBuilder({ initialContent }) {
     error: saveError,
   } = useFetch(saveResume);
 
-  // Watch form fields for preview updates
   const formValues = watch();
 
   useEffect(() => {
     if (initialContent) setActiveTab("preview");
   }, [initialContent]);
 
-  // Update preview content when form values change
   useEffect(() => {
     if (activeTab === "edit") {
       const newContent = getCombinedContent();
@@ -71,7 +67,6 @@ export default function ResumeBuilder({ initialContent }) {
     }
   }, [formValues, activeTab]);
 
-  // Handle save result
   useEffect(() => {
     if (saveResult && !isSaving) {
       toast.success("Resume saved successfully!");
@@ -84,15 +79,14 @@ export default function ResumeBuilder({ initialContent }) {
   const getContactMarkdown = () => {
     const { contactInfo } = formValues;
     const parts = [];
+
     if (contactInfo.email) parts.push(`📧 ${contactInfo.email}`);
     if (contactInfo.mobile) parts.push(`📱 ${contactInfo.mobile}`);
-    if (contactInfo.linkedin)
-      parts.push(`💼 [LinkedIn](${contactInfo.linkedin})`);
-    if (contactInfo.twitter) parts.push(`🐦 [Twitter](${contactInfo.twitter})`);
+    if (contactInfo.linkedin) parts.push(`💼 [LinkedIn](${contactInfo.linkedin})`);
+    if (contactInfo.github) parts.push(`📂 [GitHub](${contactInfo.github})`);
 
     return parts.length > 0
-      ? `## <div align="center">${user.fullName}</div>
-        \n\n<div align="center">\n\n${parts.join(" | ")}\n\n</div>`
+      ? `## <div align="center">${contactInfo.name || "Your Name"}</div>\n\n<div align="center">\n\n${parts.join(" | ")}\n\n</div>`
       : "";
   };
 
@@ -123,7 +117,6 @@ export default function ResumeBuilder({ initialContent }) {
         html2canvas: { scale: 2 },
         jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
       };
-
       await html2pdf().set(opt).from(element).save();
     } catch (error) {
       console.error("PDF generation error:", error);
@@ -135,8 +128,8 @@ export default function ResumeBuilder({ initialContent }) {
   const onSubmit = async (data) => {
     try {
       const formattedContent = previewContent
-        .replace(/\n/g, "\n") // Normalize newlines
-        .replace(/\n\s*\n/g, "\n\n") // Normalize multiple newlines to double newlines
+        .replace(/\n/g, "\n")
+        .replace(/\n\s*\n/g, "\n\n")
         .trim();
 
       console.log(previewContent, formattedContent);
@@ -194,17 +187,29 @@ export default function ResumeBuilder({ initialContent }) {
 
         <TabsContent value="edit">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-            {/* Contact Information */}
+            {/* Contact Info */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Contact Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/50">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Full Name</label>
+                  <Input
+                    {...register("contactInfo.name")}
+                    type="text"
+                    placeholder="Your Name"
+                  />
+                  {errors.contactInfo?.name && (
+                    <p className="text-sm text-red-500">
+                      {errors.contactInfo.name.message}
+                    </p>
+                  )}
+                </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Email</label>
                   <Input
                     {...register("contactInfo.email")}
                     type="email"
                     placeholder="your@email.com"
-                    error={errors.contactInfo?.email}
                   />
                   {errors.contactInfo?.email && (
                     <p className="text-sm text-red-500">
@@ -239,17 +244,15 @@ export default function ResumeBuilder({ initialContent }) {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    Twitter/X Profile
-                  </label>
+                  <label className="text-sm font-medium">GitHub URL</label>
                   <Input
-                    {...register("contactInfo.twitter")}
+                    {...register("contactInfo.github")}
                     type="url"
-                    placeholder="https://twitter.com/your-handle"
+                    placeholder="https://github.com/your-username"
                   />
-                  {errors.contactInfo?.twitter && (
+                  {errors.contactInfo?.github && (
                     <p className="text-sm text-red-500">
-                      {errors.contactInfo.twitter.message}
+                      {errors.contactInfo.github.message}
                     </p>
                   )}
                 </div>
@@ -267,7 +270,6 @@ export default function ResumeBuilder({ initialContent }) {
                     {...field}
                     className="h-32"
                     placeholder="Write a compelling professional summary..."
-                    error={errors.summary}
                   />
                 )}
               />
@@ -287,7 +289,6 @@ export default function ResumeBuilder({ initialContent }) {
                     {...field}
                     className="h-32"
                     placeholder="List your key skills..."
-                    error={errors.skills}
                   />
                 )}
               />
@@ -389,7 +390,7 @@ export default function ResumeBuilder({ initialContent }) {
             <div className="flex p-3 gap-2 items-center border-2 border-yellow-600 text-yellow-600 rounded mb-2">
               <AlertTriangle className="h-5 w-5" />
               <span className="text-sm">
-                You will lose editied markdown if you update the form data.
+                You will lose edited markdown if you update the form data.
               </span>
             </div>
           )}
@@ -405,10 +406,7 @@ export default function ResumeBuilder({ initialContent }) {
             <div id="resume-pdf">
               <MDEditor.Markdown
                 source={previewContent}
-                style={{
-                  background: "white",
-                  color: "black",
-                }}
+                style={{ background: "white", color: "black" }}
               />
             </div>
           </div>
