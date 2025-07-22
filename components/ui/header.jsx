@@ -20,7 +20,7 @@ const Header = async() => {
         {/* Logo Section - Only wraps the image */}
         <Link href='/'>
           <Image 
-            src="/LOGO.jpg" 
+            src="/logo.jpg" 
             alt="Skillective Logo" 
             width={1000} 
             height={100} 
