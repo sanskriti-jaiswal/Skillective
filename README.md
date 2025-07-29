@@ -1,3 +1,5 @@
+![License: All Rights Reserved](https://img.shields.io/badge/License-All--Rights--Reserved-red)
+
 **An AI-powered career guidance platform that transforms your skills into personalized resumes, tailored cover letters, and actionable insights — all in one place.**
 <br>
 
@@ -209,8 +211,9 @@ npx shadcn@latest init
 ---
 
 ## License
-This project is licensed under the MIT License.
-[![License](https://img.shields.io/badge/License-MIT-lightgrey)]()
+All Rights Reserved © 2025 Sanskriti Jaiswal  
+This code may not be copied, modified, or distributed without explicit permission from the author.
+
 
 
 
